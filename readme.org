@@ -5,16 +5,16 @@
 
 #+TITLE: org-qiita.el
 
-# What's org-qiita.el
+* What's org-qiita.el
 
 This script improves to upload from org-mode on emacs.
 
-# system require
+* system require
 
 - org-mode.el  (http://orgmode.org/)
 - ox-qmd.el (https://github.com/0x60df/ox-qmd)
 
-# setup
+* setup
 
 #+BEGIN_SRC lisp
 (require 'ox-qmd)
@@ -22,8 +22,8 @@ This script improves to upload from org-mode on emacs.
 (setq org-qiita-token "xxxxxxxxxxxxxxxxxxxxxxxxx")
 #+END_SRC
 
-# customize
-
+* customize
+  
 #+BEGIN_SRC lisp
 ;; If this variable is non nil,
 ;; when org file exports, it posts the article to Qiita.
@@ -34,7 +34,7 @@ This script improves to upload from org-mode on emacs.
 (defvar org-qiita-export-kill-close t)
 #+END_SRC
 
-# Usage
+* Usage
 
 You can input following command in the markdown buffer,
 
