@@ -1,0 +1,45 @@
+# -*- coding:utf-8 -*-
+#+AUTHOR: ifritJP
+#+STARTUP: nofold
+#+OPTIONS: ^:{}
+
+#+TITLE: org-qiita.el
+
+# What's org-qiita.el
+
+This script improves to upload from org-mode on emacs.
+
+# system require
+
+- org-mode.el  (http://orgmode.org/)
+- ox-qmd.el (https://github.com/0x60df/ox-qmd)
+
+# setup
+
+#+BEGIN_SRC lisp
+(require 'ox-qmd)
+(require 'org-qiita)
+(setq org-qiita-token "xxxxxxxxxxxxxxxxxxxxxxxxx")
+#+END_SRC
+
+# customize
+
+#+BEGIN_SRC lisp
+;; If this variable is non nil,
+;; when org file exports, it posts the article to Qiita.
+(setq org-qiita-export-and-post t)
+
+;; If this variable is non nil,
+;; when attrib buffer killed, it close the exported buffer.
+(defvar org-qiita-export-kill-close t)
+#+END_SRC
+
+# Usage
+
+You can input following command in the markdown buffer,
+
+#+BEGIN_SRC txt
+M-x org-qiita-post  
+#+END_SRC
+
+and to input C-c C-c uploads the article.
