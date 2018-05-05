@@ -1,0 +1,131 @@
+# -*- coding:utf-8 -*-
+#+AUTHOR: ifritJP
+#+STARTUP: nofold
+#+OPTIONS: ^:{}
+
+#+TITLE: emacs の org-mode で書いた記事を qiita に投稿する org-qiita.el
+
+* 背景
+
+私は qiita に投稿する記事を org-mode で書いています。
+
+emacs ユーザを除けば、簡単な文章の作成には Markdown を利用することが多いと思います。
+しかし、emacs ユーザは org-mode を利用することが多いのではないでしょうか？
+
+少なくとも私は org-mode を利用しています。
+
+org-mode で作成した文章は emacs でしか使えない、と言うことはなく、
+例えば github では .md と同じょうに .org を対応していますし、
+org-mode の export 機能を利用すれば様々なフォーマットに出力できます。
+
+私が qiita の記事を投稿する際は、
+0x60df さんの ox-qmd.el(https://github.com/0x60df/ox-qmd) を利用して
+org-mode から Qiita の Markdown 形式に変換し、
+ブラウザの投稿画面にペーストして投稿しています。
+
+しかし、このブラウザの投稿画面にペーストする作業も、地味に面倒だったりします。
+
+特に自分は Cookie を保存しないので、
+投稿時毎回ログインしないといけないのが非常に面倒でした。
+
+そこで、 org-mode から Qiita への投稿までを emacs で完結する
+org-qiita.el(https://github.com/ifritJP/org-qiita-el) を作成しました。
+
+* 機能
+
+org-qiita.el(https://github.com/ifritJP/org-qiita-el) では、次の機能を提供します。
+
+- ox-qmd.el のエクスポートをフックして、エクスポートから投稿までをスムーズに実行
+- 新規記事の投稿
+- 既存記事の編集
+
+*org-mode を利用せずに、直接 Markdown で記事を書いて投稿する場合にも M-x org-qiita-post で利用できます。*
+
+* 設定
+
+次を設定します。
+
+- ox-qmd.el(https://github.com/0x60df/ox-qmd) を使えるように設定
+- Qiita のユーザ管理画面からアクセストークンを発行
+  - read_qiita, write_qiita の権限を付加してください。
+- org-qiita.el(https://github.com/ifritJP/org-qiita-el) を適当にコピー
+- 次を emacs に設定
+  
+#+BEGIN_SRC lisp
+(require 'org-qiita)
+(setq org-qiita-token "xxxxxxxxxxxxxxxxxxxxxxxxx") ;; 取得したアクセストークンをセット
+#+END_SRC
+
+* 使用方法
+
+ox-qmd.el の To temporary buffer で export すると、
+export 終了後に org-qiita-post が自動で実行されます。
+
+このとき org-qiita-post は Qiita にアクセスし、
+投稿済みの記事の情報を取得します。
+
+現在の記事のタイトルが投稿済みの記事と同じタイトルだった場合は、
+投稿済みの記事を置き換える形の投稿となり、
+同じタイトルの記事がない場合は新規の投稿となります。
+
+ただし、これだと投稿済みの記事のタイトルを変更することが出来なくなってしまうため、
+同じタイトルの記事がない場合に次の処理が行なわれます。
+
+- mini-buffer に "Is this new article? (yes or no)" が表示される
+- yes とした場合、新規の投稿とする。
+- no とした場合、既存の記事と置き換える投稿とし、
+  mini-buffer でどの記事と置き換えるのかを指定する。
+  - ここで TAB を押せば、記事一覧が表示される。
+
+
+上記処理終了後、本文が強調表示された Markdown バッファと、
+投稿属性設定用のバッファが表示されます。
+
+[[https://raw.githubusercontent.com/ifritJP/org-qiita-el/master/doc/qiita.png]]
+
+
+この投稿属性設定用バッファで、
+タイトルの編集や TAG の設定、 gist と連携するかどうか等を指定します。
+なお、 TAG の設定は文字列のリストを指定し、
+gist と連携するかどうか等の指定は t か :json-false で指定します。
+ちなみに t は true で、 :json-false は false を表します。
+
+投稿属性設定が終了した後は C-c C-c で投稿します。
+投稿をキャンセルする場合は、 バッファを kill すれば OK です。
+
+投稿属性設定バッファを閉じることで、
+Markdown バッファの本文強調表示が解除されます。
+
+* カスタマイズ
+
+主なカスタマイズ項目として次の 2 つの項目があります。  
+  
+#+BEGIN_SRC lisp
+;; If this variable is non nil,
+;; when org file exports, it posts the article to Qiita.
+(setq org-qiita-export-and-post t)
+
+;; If this variable is non nil,
+;; when attrib buffer killed, it close the exported buffer.
+(defvar org-qiita-export-kill-close t)
+#+END_SRC
+
+org-qiita-export-and-post が nil でない場合は、
+ox-qmd による export 後に org-qiita-post を実行します。
+これは標準で t です。
+
+org-qiita-export-kill-close が nil でない場合は、
+投稿属性設定バッファを閉じた時に Markdown のバッファも閉じます。
+
+* 最後に
+
+emacs から Qiita への投稿機能は別の方が以前作成されていましたが、
+Qiita の REST API が V2 に移行してしまい、その投稿機能は利用できなくなっていました。
+
+そこで、今回は V2 に対応した投稿機能を新規に作成しました。
+機能は投稿に必要な最低限のものしか対応していません。
+気が向けば拡張するかもしれませんが、
+もしも欲しい機能があれば各自で拡張してください。
+
+というか、一番拡張して欲しいのは画像をアップロードするための REST API を
+Qiita に追加して欲しいです。。。

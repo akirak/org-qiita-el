@@ -1,3 +1,5 @@
+(require 'json)
+
 (defvar org-qiita-token nil)
 
 
@@ -252,7 +254,9 @@ when attrib buffer killed, it close the exported buffer.")
       (progn
 	(kill-buffer org-qiita-src-buf)
 	(delete-window))
-    (select-window (get-buffer-window org-qiita-src-buf))))
+    (let ((window (get-buffer-window org-qiita-src-buf)))
+      (when window
+	(select-window window)))))
 
 (defun org-qiita-post-with-attrib ()
   "This function posts an article with specified attributes."
