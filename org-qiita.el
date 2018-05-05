@@ -119,6 +119,8 @@ when attrib buffer killed, it close the exported buffer.")
 	(end-of-line)
 	(setq title (buffer-substring-no-properties title-begin-pos (point))))
       (goto-char body-pos)
+      (when (string-match "^[[:space:]]*\\([^[:space:]]*\\)[[:space:]]*$" title)
+	(setq title (replace-match "\\1" nil nil title)))      
       (list title body-pos))))
 
 (defun org-qiita-get-item-for-this-buf (select-title)

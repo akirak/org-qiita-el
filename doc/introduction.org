@@ -117,6 +117,47 @@ ox-qmd による export 後に org-qiita-post を実行します。
 org-qiita-export-kill-close が nil でない場合は、
 投稿属性設定バッファを閉じた時に Markdown のバッファも閉じます。
 
+* 想定する Markdown のスタイル
+
+org-qiita.el では、次のいずれかの Markdown のスタイルを想定しています。
+
+#+BEGIN_SRC md
+title
+=====
+# body section
+## body subsection
+#+END_SRC
+
+#+BEGIN_SRC md
+# title
+## body section
+### body subsection
+#+END_SRC
+
+#+BEGIN_SRC md
+title
+=====
+body
+# body section
+## body subsection
+#+END_SRC
+
+上記意外のスタイルになる場合は、
+タイトル、本文の認識が正常に行なえません。
+
+次の変数をスタイルに併せて適宜変更することで、正常に認識することが出来る可能性があります。
+
+#+BEGIN_SRC lisp
+(defvar org-qiita-title-pattern "\\(^=+\n\\)\\|\\(^#[^#]\\)")
+(defvar org-qiita-body-pattern "\\(^#.+$\\)\\|\\(^[^:\n]+\n\\)")
+#+END_SRC
+
+* 参照
+
+- ox-qmd.el
+  - https://qiita.com/0x60df/items/3cde67967e3db30d9afe  
+    
+
 * 最後に
 
 emacs から Qiita への投稿機能は別の方が以前作成されていましたが、
