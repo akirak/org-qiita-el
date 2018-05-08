@@ -25,8 +25,8 @@ when attrib buffer killed, it close the exported buffer.")
 
 
 (defvar org-qiita-title-pattern "\\(^=+\n\\)\\|\\(^#[^#]\\)")
-(defvar org-qiita-body-pattern "\\(^#.+$\\)\\|\\(^[^:\n]+\n\\)")
-
+(defvar org-qiita-body-pattern "\\(^#.+$\\)\\|\\(^[^:\n]+\n\\)\\|\\(^.+http[s]:.+\n\\)")
+;; (re-search-forward "\\(\\(?!org\\).\\)")
 
 
 (defvar org-qiita-debug-dump-rest-respons nil)
