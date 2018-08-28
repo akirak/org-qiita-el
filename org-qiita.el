@@ -253,7 +253,7 @@ when attrib buffer killed, it close the exported buffer.")
 (defun org-qiita-kill-attrib-bug ()
   (delete-overlay org-qiita-body-overlay)
   (if org-qiita-export-kill-close
-      (progn
+      (when (buffer-live-p org-qiita-src-buf)
 	(kill-buffer org-qiita-src-buf)
 	(delete-window))
     (let ((window (get-buffer-window org-qiita-src-buf)))
