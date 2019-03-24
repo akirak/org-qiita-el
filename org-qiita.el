@@ -48,12 +48,16 @@ when attrib buffer killed, it close the exported buffer.")
 		 (when input "@-"))))
       (apply 'call-process-region
 	     (point-min) (point-max) "curl" t t nil
-	     (delq nil opt-list)))
-    (when org-qiita-debug-dump-rest-respons
-      (message (format "%s:\n%s" (list method path) (buffer-string) )))
-    (let ((json-object-type 'plist)
-	  (json-array-type 'list))
-      (json-read-from-string (buffer-string)))
+	     (delq nil opt-list))
+      (beginning-of-buffer)
+      (re-search-forward "\\[\\|{")
+      (setq buffer-str (buffer-substring-no-properties (1- (point)) (point-max)))
+      (when org-qiita-debug-dump-rest-respons
+	(message (format "%s:\n%s" (list method path) buffer-str )))
+      (let ((json-object-type 'plist)
+	    (json-array-type 'list))
+	(json-read-from-string buffer-str))
+      )
     ))
 
 (defun org-qiita-get-user-info ()
@@ -199,7 +203,7 @@ when attrib buffer killed, it close the exported buffer.")
 		     (:gist :json-false "t ==> true, :json-false ==> false")
 		     (:group_url_name nil)
 		     (:private :json-false "t ==> true, :json-false ==> false")
-		     (:tags ( "TAG" ) " <--- input tag names. ex: ( \"abc\" \"xyz\" )")
+		     (:tags ( (:name "TAG") ) " <--- input tag names. ex: ( \"abc\" \"xyz\" )")
 		     (:title "タイトル")
 		     (:tweet :json-false "t ==> true, :json-false ==> false")))
     (dolist (info key-info)
@@ -222,8 +226,10 @@ when attrib buffer killed, it close the exported buffer.")
 	  (cond
 	   ((equal key :tags)
 	    (insert ":tags (" )
-	    (dolist (tag (plist-get item key))
-	      (insert (format "\"%s\" " (or (plist-get tag :name) ""))))
+	    (if (plist-get item key)
+		(dolist (tag (plist-get item key))
+		  (insert (format "\"%s\" " (or (plist-get tag :name) ""))))
+	      (insert "\"TAG\""))
 	    (insert ") " ))
 	   (t
 	    (let ((val (plist-get item key))
@@ -294,12 +300,67 @@ when attrib buffer killed, it close the exported buffer.")
     ))
 
 
-
+(require 'ox-qmd)
 (defadvice org-qmd-export-as-markdown
     (after org-qiita-org-qmd-export-as-markdown activate)
   (when org-qiita-export-and-post
     (org-qiita-post)))
 
+(cond ((fboundp 'org-qmd--unfill-paragraph)
+       ;; 古いバージョンと今のバージョンで org-qmd のシンボルが違うので,
+       ;; 両方で動くように対応。
+       (org-export-define-derived-backend 'qiita 'md
+	 :filters-alist '((:filter-paragraph . org-qmd--unfill-paragraph))
+	 :menu-entry
+	 '(?Q "Export to Qiita Markdown"
+	      ((?Q "Upload with temporary buffer"
+		   (lambda (a s v b) (org-qiita-export-as-markdown a s v)))
+	       ))
+	 :translate-alist '((headline . org-qmd--headline)
+			    (inner-template . org-qmd--inner-template)
+			    (template . org-qiita-template)
+			    (keyword . org--qmd-keyword)
+			    (strike-through . org-qmd-strike-through)
+			    (src-block . org-qmd--src-block))))
+      (t
+       (org-export-define-derived-backend 'qiita 'md
+	 :filters-alist '((:filter-paragraph . org-qmd-unfill-paragraph))
+	 :menu-entry
+	 '(?Q "Export to Qiita Markdown"
+	      ((?Q "Upload with temporary buffer"
+		   (lambda (a s v b) (org-qiita-export-as-markdown a s v)))
+	       ))
+	 :translate-alist '((headline . org-qmd-headline)
+			    (inner-template . org-qmd-inner-template)
+			    (template . org-qiita-template)
+			    (keyword . org-qmd-keyword)
+			    (strike-through . org-qmd-strike-through)
+			    (src-block . org-qmd-src-block)
+			    (table-cell . org-qmd-table-cell)
+			    (table-row . org-qmd-table-row)
+			    (table . org-qmd-table)
+			    ))
+       ))
+
+(defun org-qiita-export-as-markdown (&optional async subtreep visible-only)
+  (interactive)
+  (org-export-to-buffer 'qiita "*Org Qiita Upload*"
+    async subtreep visible-only nil nil (lambda () (text-mode)))
+  (when org-qiita-export-and-post
+    (org-qiita-post))
+  )
+
+(defun org-qiita-template (contents info)
+  "Return complete document string after conversion.
+CONTENTS is the transcoded contents string.  INFO is a plist
+holding export options."
+  (concat
+   ;; Document title.
+   (let ((title (plist-get info :title)))
+     (when title
+       (format "%s\n=======\n" (org-export-data title info))))
+   contents
+   ))
 
 
 (provide 'org-qiita)
