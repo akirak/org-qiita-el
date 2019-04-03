@@ -34,6 +34,7 @@
 
 (require 'json)
 (require 'ox-qmd)
+(require 'rx)
 
 ;;;; Variables
 
@@ -46,7 +47,10 @@
 (defconst org-qiita-post-buf-name "*org-qiita-post*")
 
 (defconst org-qiita-exclude-edit-pattern
-  "_count\\|body\\|:user\\|:updated_at")
+  (rx (or "_count"
+          "body"
+          ":user"
+          ":updated_at")))
 
 (defconst org-qiita-title-pattern
   "\\(^=+\n\\)\\|\\(^#[^#]\\)")
