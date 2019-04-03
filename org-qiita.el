@@ -4,7 +4,7 @@
 
 ;; Author: Enter your name here <name@address.com>
 ;; Version: 0.1
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "25.1") (ox-qmd "1.0"))
 ;; Keywords: outlines
 ;; URL: https://github.com/ifritJP/org-qiita-el.git
 
