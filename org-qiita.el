@@ -37,34 +37,55 @@
 
 ;;;; Variables
 
-(defvar org-qiita-token nil)
+(defgroup org-qiita nil
+  "Org-Qiita API bridge."
+  :group 'org)
 
-(defvar org-qiita-export-and-post t
-  "If this variable is non nil,
-when org file exports, it posts the article to Qiita.")
+(defconst org-qiita-ediff-buf-name "*org-qiita-src*")
 
-(defvar org-qiita-export-kill-close nil
-  "If this variable is non nil,
-when attrib buffer killed, it close the exported buffer.")
+(defconst org-qiita-post-buf-name "*org-qiita-post*")
 
-(defvar org-qiita-url "https://qiita.com/api/v2/" )
+(defconst org-qiita-exclude-edit-pattern
+  "_count\\|body\\|:user\\|:updated_at")
 
-(defvar org-qiita-ediff-buf-name "*org-qiita-src*")
-(defvar org-qiita-post-buf-name "*org-qiita-post*")
-(defvar org-qiita-exclude-edit-pattern "_count\\|body\\|:user\\|:updated_at")
+(defconst org-qiita-title-pattern
+  "\\(^=+\n\\)\\|\\(^#[^#]\\)")
 
-(defface org-qiita-face-post-body
-  `((t
-     :background "dark green"))
-  "body face")
+(defconst org-qiita-body-pattern
+  "\\(^#.+$\\)\\|\\(^[^:\n]+\n\\)\\|\\(^.+http[s]:.+\n\\)")
+
 (defvar org-qiita-face-post-body 'org-qiita-face-post-body)
 
-(defvar org-qiita-title-pattern "\\(^=+\n\\)\\|\\(^#[^#]\\)")
-(defvar org-qiita-body-pattern "\\(^#.+$\\)\\|\\(^[^:\n]+\n\\)\\|\\(^.+http[s]:.+\n\\)")
-;; (re-search-forward "\\(\\(?!org\\).\\)")
+(defvar org-qiita-token nil)
+
+(defcustom org-qiita-export-and-post t
+  "If this variable is non nil,
+when org file exports, it posts the article to Qiita."
+  :type 'boolean
+  :group 'org-qiita)
+
+(defcustom org-qiita-export-kill-close nil
+  "If this variable is non nil,
+when attrib buffer killed, it close the exported buffer."
+  :type 'boolean
+  :group 'org-qiita)
+
+(defcustom org-qiita-user-id nil
+  "Your login name on Qiita."
+  :type 'string
+  :group 'org-qiita)
+
+(defcustom org-qiita-url "https://qiita.com/api/v2/"
+  "The end point for Qiita API v2."
+  :type 'string
+  :group 'org-qiita)
+
+(defface org-qiita-face-post-body
+  '((t :background "dark green"))
+  "Face for the post body.")
 
 (defvar org-qiita-debug-dump-rest-respons nil)
-(defvar org-qiita-user-id nil)
+
 (defvar org-qiita-items nil)
 
 ;;;; Functions
@@ -189,6 +210,7 @@ when attrib buffer killed, it close the exported buffer.")
       (insert (plist-get item :body))
       (ediff-buffers (current-buffer) draft-buf))))
 
+;;;###autoload
 (defun org-qiita-post ()
   "This function posts an article of this buffer."
   (interactive)
